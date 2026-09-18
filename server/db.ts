@@ -23,59 +23,78 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   const db = await getDb();
   if (!db) return;
 
-  const values: InsertUser = { openId: user.openId };
-  const updateSet: Record<string, unknown> = {};
-  const textFields = ["name", "email", "loginMethod"] as const;
-  for (const field of textFields) {
-    if (user[field] !== undefined) {
-      values[field] = user[field] ?? null;
-      updateSet[field] = user[field] ?? null;
+  try {
+    const values: InsertUser = { openId: user.openId };
+    const updateSet: Record<string, unknown> = {};
+    const textFields = ["name", "email", "loginMethod"] as const;
+    for (const field of textFields) {
+      if (user[field] !== undefined) {
+        values[field] = user[field] ?? null;
+        updateSet[field] = user[field] ?? null;
+      }
     }
+    if (user.lastSignedIn !== undefined) {
+      values.lastSignedIn = user.lastSignedIn;
+      updateSet.lastSignedIn = user.lastSignedIn;
+    } else {
+      values.lastSignedIn = new Date();
+      updateSet.lastSignedIn = new Date();
+    }
+    if (user.role !== undefined) {
+      values.role = user.role;
+      updateSet.role = user.role;
+    } else if (user.openId === ENV.ownerOpenId) {
+      values.role = "admin";
+      updateSet.role = "admin";
+    }
+    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+  } catch (error) {
+    console.error("[Database] Error in upsertUser:", error);
   }
-  if (user.lastSignedIn !== undefined) {
-    values.lastSignedIn = user.lastSignedIn;
-    updateSet.lastSignedIn = user.lastSignedIn;
-  } else {
-    values.lastSignedIn = new Date();
-    updateSet.lastSignedIn = new Date();
-  }
-  if (user.role !== undefined) {
-    values.role = user.role;
-    updateSet.role = user.role;
-  } else if (user.openId === ENV.ownerOpenId) {
-    values.role = "admin";
-    updateSet.role = "admin";
-  }
-  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
 }
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-  return result[0];
+  try {
+    const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+    return result[0];
+  } catch (error) {
+    console.warn("[Database] Failed to query user by openId:", error);
+    return undefined;
+  }
 }
 
 export async function getDuoForUser(userId: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const rows = await db.select({ duo: duos, member: duoMembers })
-    .from(duoMembers)
-    .innerJoin(duos, eq(duoMembers.duoId, duos.id))
-    .where(eq(duoMembers.userId, userId))
-    .limit(1);
-  return rows[0];
+  try {
+    const rows = await db.select({ duo: duos, member: duoMembers })
+      .from(duoMembers)
+      .innerJoin(duos, eq(duoMembers.duoId, duos.id))
+      .where(eq(duoMembers.userId, userId))
+      .limit(1);
+    return rows[0];
+  } catch (error) {
+    console.warn("[Database] Failed to query duo for user:", error);
+    return undefined;
+  }
 }
 
 export async function getDuoMembers(duoId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select({
-    id: duoMembers.userId,
-    name: users.name,
-    nickname: duoMembers.nickname,
-  }).from(duoMembers).innerJoin(users, eq(duoMembers.userId, users.id))
-    .where(eq(duoMembers.duoId, duoId)).orderBy(asc(duoMembers.joinedAt));
+  try {
+    return await db.select({
+      id: duoMembers.userId,
+      name: users.name,
+      nickname: duoMembers.nickname,
+    }).from(duoMembers).innerJoin(users, eq(duoMembers.userId, users.id))
+      .where(eq(duoMembers.duoId, duoId)).orderBy(asc(duoMembers.joinedAt));
+  } catch (error) {
+    console.warn("[Database] Failed to query duo members:", error);
+    return [];
+  }
 }
 
 export async function createDuo(userId: number, nickname?: string) {
@@ -105,21 +124,35 @@ export async function joinDuo(userId: number, inviteCode: string, nickname?: str
 export async function isDuoMember(userId: number, duoId: number) {
   const db = await getDb();
   if (!db) return false;
-  const row = await db.select({ id: duoMembers.id }).from(duoMembers)
-    .where(and(eq(duoMembers.duoId, duoId), eq(duoMembers.userId, userId))).limit(1);
-  return row.length > 0;
+  try {
+    const row = await db.select({ id: duoMembers.id }).from(duoMembers)
+      .where(and(eq(duoMembers.duoId, duoId), eq(duoMembers.userId, userId))).limit(1);
+    return row.length > 0;
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function getTasks(duoId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(tasks).where(eq(tasks.duoId, duoId)).orderBy(asc(tasks.sortOrder), asc(tasks.createdAt));
+  try {
+    return await db.select().from(tasks).where(eq(tasks.duoId, duoId)).orderBy(asc(tasks.sortOrder), asc(tasks.createdAt));
+  } catch (error) {
+    console.warn("[Database] Failed to get tasks:", error);
+    return [];
+  }
 }
 
 export async function getCompletions(taskIds: number[], dayKeys: string[]) {
   const db = await getDb();
   if (!db || taskIds.length === 0 || dayKeys.length === 0) return [];
-  return db.select().from(taskCompletions).where(and(inArray(taskCompletions.taskId, taskIds), inArray(taskCompletions.dayKey, dayKeys)));
+  try {
+    return await db.select().from(taskCompletions).where(and(inArray(taskCompletions.taskId, taskIds), inArray(taskCompletions.dayKey, dayKeys)));
+  } catch (error) {
+    console.warn("[Database] Failed to get completions:", error);
+    return [];
+  }
 }
 
 export async function addTask(duoId: number, userId: number, title: string) {
