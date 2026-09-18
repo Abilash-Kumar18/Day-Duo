@@ -23,7 +23,21 @@ app.use(
   createExpressMiddleware({
     router: appRouter,
     createContext,
+    onError({ error, path }) {
+      console.error(`[tRPC Error] on path ${path}:`, error);
+    },
   })
 );
+
+// Global fallback error handler to prevent Vercel 500 HTML error pages
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("[API Serverless Error]:", err);
+  res.status(500).json({
+    error: {
+      message: err?.message || "Internal server error",
+      code: "INTERNAL_SERVER_ERROR",
+    },
+  });
+});
 
 export default app;
