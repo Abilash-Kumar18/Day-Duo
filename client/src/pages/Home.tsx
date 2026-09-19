@@ -20,6 +20,29 @@ function PersonMark({ label, done, tone, onClick }: { label: string; done: boole
 }
 
 function AuthLanding() {
+  const [name, setName] = useState("Alex");
+  const utils = trpc.useUtils();
+  const login = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      utils.auth.me.setData(undefined, data.user as any);
+      utils.auth.me.invalidate();
+      toast.success(`Welcome to DuoDay, ${data.user?.name || "friend"}!`);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Could not sign in");
+    },
+  });
+
+  const handleSignIn = (customName?: string) => {
+    const finalName = (customName ?? name).trim() || "Alex";
+    const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
+    if (oauthPortalUrl) {
+      startLogin();
+      return;
+    }
+    login.mutate({ name: finalName });
+  };
+
   return (
     <main className="landing-shell">
       <div className="landing-card">
@@ -28,7 +51,45 @@ function AuthLanding() {
           <p className="eyebrow">A little momentum, together</p>
           <h1>Make today easier to finish.</h1>
           <p className="landing-subtitle">A shared daily list for two people who want to show up, check in, and keep going.</p>
-          <Button className="primary-button mt-7" onClick={() => startLogin()}>Sign in to start <ArrowRight size={17} /></Button>
+          <div className="mt-7 flex flex-col gap-3 max-w-sm">
+            <div className="flex gap-2">
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSignIn(); }}
+                placeholder="Your name (e.g. Alex)"
+                className="setup-input"
+                disabled={login.isPending}
+              />
+              <Button
+                className="primary-button flex-shrink-0"
+                onClick={() => handleSignIn()}
+                disabled={login.isPending}
+              >
+                {login.isPending ? <RefreshCw className="spin" size={17} /> : <>Sign in to start <ArrowRight size={17} /></>}
+              </Button>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-[#829087]">
+              <span>Quick demo login:</span>
+              <button
+                type="button"
+                className="underline hover:text-[#45634e] cursor-pointer font-medium"
+                onClick={() => handleSignIn("Alex")}
+                disabled={login.isPending}
+              >
+                Alex (Partner 1)
+              </button>
+              <span>·</span>
+              <button
+                type="button"
+                className="underline hover:text-[#45634e] cursor-pointer font-medium"
+                onClick={() => handleSignIn("Jordan")}
+                disabled={login.isPending}
+              >
+                Jordan (Partner 2)
+              </button>
+            </div>
+          </div>
         </div>
         <div className="landing-note"><Sparkles size={16} /> Your progress is private to your duo.</div>
       </div>
