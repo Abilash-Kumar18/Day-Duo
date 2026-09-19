@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
-import { createDuo, addTask, getCompletions, getDayKeys, getDuoForUser, getDuoMembers, getTasks, isDuoMember, joinDuo, setCompletion } from "./db";
+import { createDuo, addTask, getCompletions, getDayKeys, getDuoForUser, getDuoMembers, getTasks, isDuoMember, joinDuo, setCompletion, upsertUser, getUserByOpenId } from "./db";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { sdk } from "./_core/sdk";
 
 const dayKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -11,6 +12,27 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    login: publicProcedure
+      .input(z.object({ name: z.string().trim().min(1).max(80) }))
+      .mutation(async ({ ctx, input }) => {
+        const cleanName = input.name.trim();
+        const openId = `local_${cleanName.toLowerCase().replace(/[^a-z0-9]/g, "_") || "user"}`;
+        await upsertUser({
+          openId,
+          name: cleanName,
+          email: `${openId}@local.test`,
+          loginMethod: "local",
+          lastSignedIn: new Date(),
+        });
+        const user = await getUserByOpenId(openId);
+        const sessionToken = await sdk.createSessionToken(openId, {
+          name: cleanName,
+          expiresInMs: ONE_YEAR_MS,
+        });
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        return { success: true, user };
+      }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });

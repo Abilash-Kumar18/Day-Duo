@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -56,6 +57,22 @@ export default function DashboardLayout({
     return <DashboardLayoutSkeleton />
   }
 
+  const utils = trpc.useUtils();
+  const login = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      utils.auth.me.setData(undefined, data.user as any);
+      utils.auth.me.invalidate();
+    },
+  });
+
+  const handleSignIn = () => {
+    if (import.meta.env.VITE_OAUTH_PORTAL_URL) {
+      startLogin();
+    } else {
+      login.mutate({ name: "User" });
+    }
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -69,11 +86,12 @@ export default function DashboardLayout({
             </p>
           </div>
           <Button
-            onClick={() => startLogin()}
+            onClick={handleSignIn}
+            disabled={login.isPending}
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
-            Sign in
+            {login.isPending ? "Signing in..." : "Sign in"}
           </Button>
         </div>
       </div>
