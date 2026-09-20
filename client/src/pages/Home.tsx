@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Clipboard, Copy, Link2, LogOut, Plus, RefreshCw, Sparkles, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Clipboard, Copy, Link2, LogOut, Plus, RefreshCw, Sparkles, Users, X } from "lucide-react";
+import { CustomCalendar } from "@/components/CustomCalendar";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 const toDayKey = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -126,6 +127,23 @@ function Consistency({ members, completions, dayKey }: { members: Array<{ id: nu
 export default function Home() {
   const { user, loading, isAuthenticated, logout } = useAuth();
   const [day, setDay] = useState(() => new Date());
+  const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+        setShowCalendar(false);
+      }
+    }
+    if (showCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showCalendar]);
+
   const dayKey = toDayKey(day);
   const duoQuery = trpc.duo.mine.useQuery(undefined, { enabled: Boolean(isAuthenticated) });
   const dashboard = trpc.todo.dashboard.useQuery({ dayKey }, { enabled: Boolean(isAuthenticated && duoQuery.data), refetchInterval: 5000 });
@@ -152,7 +170,37 @@ export default function Home() {
   return <div className="app-shell">
     <header className="topbar"><div className="brand-lockup"><AppMark /><span className="brand-word">DuoDay</span></div><div className="topbar-right"><div className="online-dot"><span></span> synced</div><button className="icon-button" onClick={() => logout()} title="Sign out"><LogOut size={17} /></button></div></header>
     <main className="dashboard"><div className="welcome-row"><div><p className="eyebrow">Good to see you, {labelFor(me)}</p><h1>Today, together.</h1></div><button className="invite-pill" onClick={copyCode}><Link2 size={15} /> <span>Invite {labelFor(partner)}</span><Copy size={14} /></button></div>
-      <div className="date-nav"><button className="icon-button soft" onClick={() => shiftDay(-1)}><ArrowLeft size={17} /></button><div><strong>{formatDate(dayKey)}</strong>{dayKey === toDayKey(new Date()) && <span className="today-label">Today</span>}</div><button className="icon-button soft" onClick={() => shiftDay(1)}><ArrowRight size={17} /></button></div>
+      <div className="date-nav-wrapper" ref={calendarRef}>
+        <div className="date-nav">
+          <button className="icon-button soft" onClick={() => shiftDay(-1)} title="Previous Day"><ArrowLeft size={17} /></button>
+          <div className="date-display-trigger" onClick={() => setShowCalendar(!showCalendar)} title="Click to open calendar">
+            <strong>{formatDate(dayKey)}</strong>
+            {dayKey === toDayKey(new Date()) && <span className="today-label">Today</span>}
+          </div>
+          <button className="icon-button soft" onClick={() => shiftDay(1)} title="Next Day"><ArrowRight size={17} /></button>
+          <button
+            className={`icon-button soft calendar-trigger-btn ${showCalendar ? "active" : ""}`}
+            onClick={() => setShowCalendar(!showCalendar)}
+            title="Open Calendar Picker"
+            aria-label="Open Calendar Picker"
+          >
+            <CalendarDays size={18} />
+          </button>
+        </div>
+
+        {showCalendar && (
+          <div className="calendar-popover-container">
+            <CustomCalendar
+              selectedDate={day}
+              onSelectDate={(newDate) => {
+                setDay(newDate);
+                setShowCalendar(false);
+              }}
+              onClose={() => setShowCalendar(false)}
+            />
+          </div>
+        )}
+      </div>
       <div className="dashboard-grid"><section className="tasks-card card-surface"><div className="section-heading"><div><p className="eyebrow">Shared list</p><h2>Small steps count</h2></div><span className="progress-number">{percent}%</span></div><div className="progress-track"><span style={{ width: `${percent}%` }}></span></div><p className="muted-copy tasks-summary">{doneCount} of {data?.tasks.length || 0} done by you · {partner ? `${labelFor(partner)} is checking in too` : "invite your person to begin"}</p><div className="task-list">{data?.tasks.map((task, index) => <div className={`task-row ${isDone(task.id, user.id) && (!partner || isDone(task.id, partner.id)) ? "completed" : ""}`} key={task.id}><div className="task-content"><span className="task-index">0{index + 1}</span><span className="task-title">{task.title}</span></div><div className="people-checks" title="Each person marks their own completion"><PersonMark label={labelFor(me)} tone="mine" done={isDone(task.id, user.id)} onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !isDone(task.id, user.id) })} />{partner ? <PersonMark label={labelFor(partner)} tone="partner" done={isDone(task.id, partner.id)} onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !isDone(task.id, partner.id) })} /> : <span className="person-mark waiting">?</span>}</div></div>)}</div><div className="add-task"><Input value={newTask} onChange={(event) => setNewTask(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitTask(); }} placeholder="Add another task…" /><Button className="add-button" onClick={submitTask} disabled={!newTask.trim() || addTask.isPending}><Plus size={18} /></Button></div></section><div className="side-stack"><div className="people-card card-surface"><div className="section-heading"><div><p className="eyebrow">Your duo</p><h2>In it together</h2></div><Users size={19} className="heading-icon" /></div><div className="person-line"><span className="avatar avatar-a">{labelFor(me).slice(0, 1)}</span><div><strong>{labelFor(me)}</strong><small>your progress</small></div><span className="person-status">{doneCount}/{data?.tasks.length || 0}</span></div><div className="person-line"><span className="avatar avatar-b">{partner ? labelFor(partner).slice(0, 1) : "?"}</span><div><strong>{partner ? labelFor(partner) : "Waiting for your person"}</strong><small>{partner ? "their progress" : "share the invite code"}</small></div><span className="person-status">{partner ? `${data?.tasks.filter(task => isDone(task.id, partner.id)).length || 0}/${data?.tasks.length || 0}` : "—"}</span></div><button className="copy-code" onClick={copyCode}><Clipboard size={15} /> Copy invite code <strong>{duoQuery.data.inviteCode}</strong></button></div><Consistency members={members} completions={completions} dayKey={dayKey} /></div></div>
       <footer className="app-footer"><span><Sparkles size={14} /> DuoDay refreshes automatically while you’re both here.</span><button onClick={() => dashboard.refetch()}><RefreshCw size={14} /> Refresh</button></footer>
     </main>
