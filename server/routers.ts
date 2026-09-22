@@ -1,11 +1,11 @@
 // @ts-nocheck
 import { z } from "zod";
-import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const";
-import { getSessionCookieOptions } from "./_core/cookies";
-import { createDuo, addTask, removeTask, getCompletions, getDayKeys, getDuoForUser, getDuoMembers, getTasks, isDuoMember, joinDuo, setCompletion, upsertUser, getUserByOpenId } from "./db";
-import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { sdk } from "./_core/sdk";
+import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const.js";
+import { getSessionCookieOptions } from "./_core/cookies.js";
+import { createDuo, addTask, removeTask, getCompletions, getDayKeys, getDuoForUser, getDuoMembers, getTasks, isDuoMember, joinDuo, setCompletion, upsertUser, getUserByOpenId } from "./db.js";
+import { systemRouter } from "./_core/systemRouter.js";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
+import { sdk } from "./_core/sdk.js";
 
 const dayKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
