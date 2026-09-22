@@ -1,6 +1,5 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { nanoid } from "nanoid";
 import { duoMembers, duos, InsertUser, taskCompletions, tasks, users, User, Duo, DuoMember, Task, TaskCompletion } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -160,7 +159,7 @@ export async function createDuo(userId: number, nickname?: string) {
   const db = await getDb();
   if (db) {
     try {
-      const inviteCode = nanoid(8).toUpperCase();
+      const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
       const result = await db.insert(duos).values({ inviteCode, createdBy: userId });
       const duoId = Number(result[0].insertId);
       await db.insert(duoMembers).values({ duoId, userId, nickname: nickname || null });
@@ -171,7 +170,7 @@ export async function createDuo(userId: number, nickname?: string) {
     }
   }
 
-  const inviteCode = nanoid(8).toUpperCase();
+  const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
   const duoId = nextDuoId++;
   const now = new Date();
   const duo: Duo = { id: duoId, inviteCode, createdBy: userId, createdAt: now };

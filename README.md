@@ -1,6 +1,6 @@
 # DuoDay 👥
 
-A modern full-stack web application designed for couples, partners, or duos to plan daily routines, build habits, manage shared goals, and stay synchronized every day.
+A modern full-stack web application designed for teammates or duos to plan daily routines, build habits, manage shared goals, and stay synchronized every day.
 
 ---
 
