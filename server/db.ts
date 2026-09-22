@@ -10,7 +10,7 @@ export async function getDb() {
   if (!_db && process.env.DATABASE_URL && process.env.DATABASE_URL.trim().length > 0) {
     try {
       const poolConnection = mysql.createPool(process.env.DATABASE_URL);
-      _db = drizzle(poolConnection);
+      _db = drizzle(poolConnection as any) as any;
     } catch (error) {
       console.warn("[Database] Failed to initialize database connection:", error);
       _db = null;
