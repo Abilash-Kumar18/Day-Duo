@@ -55,6 +55,10 @@ h2 { font-size: 21px; }
 .task-index { color: #b1bcb0; font-size: 11px; font-weight: 700; }
 .task-title { color: #46564b; font-size: 14px; font-weight: 600; transition: .18s ease; }
 .people-checks { display: flex; gap: 6px; }
+.task-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.task-remove-btn { width: 30px; height: 30px; border-radius: 9px; border: 1px solid transparent; background: transparent; color: #b2beb4; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all .18s ease; padding: 0; }
+.task-remove-btn:hover { background: #fef2f2; color: #ef4444; border-color: #fee2e2; transform: scale(1.05); }
+.task-remove-btn:active { transform: scale(0.95); }
 .person-mark { width: 30px; height: 30px; border: 1px solid #d7ded4; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; color: #a0aca2; font-size: 10px; font-weight: 700; background: #f9faf7; transition: .18s ease; }
 .person-mark:hover { border-color: #db8a70; background: #fffaf7; }
 .person-mark.mine.done { background: #e6816b; border-color: #e6816b; color: white; }

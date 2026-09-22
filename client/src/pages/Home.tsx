@@ -5,7 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Clipboard, Copy, Link2, LogOut, Plus, RefreshCw, Sparkles, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Clipboard, Copy, Link2, LogOut, Plus, RefreshCw, Sparkles, Trash2, Users, X } from "lucide-react";
 import { CustomCalendar } from "@/components/CustomCalendar";
 
 const pad = (value: number) => String(value).padStart(2, "0");
@@ -150,6 +150,28 @@ export default function Home() {
   const utils = trpc.useUtils();
   const addTask = trpc.todo.add.useMutation({ onSuccess: () => { utils.todo.dashboard.invalidate(); toast.success("Task added"); }, onError: (error) => toast.error(error.message) });
   const toggleTask = trpc.todo.toggle.useMutation({ onMutate: async ({ taskId, isDone }) => { await utils.todo.dashboard.cancel({ dayKey }); const previous = utils.todo.dashboard.getData({ dayKey }); utils.todo.dashboard.setData({ dayKey }, old => old ? ({ ...old, completions: [...old.completions.filter(item => !(item.taskId === taskId && item.userId === user?.id && item.dayKey === dayKey)), { id: -Date.now(), taskId, userId: user?.id || 0, dayKey, isDone: isDone ? 1 : 0, updatedAt: new Date() }] }) : old); return { previous }; }, onError: (_error, _input, context) => { if (context?.previous) utils.todo.dashboard.setData({ dayKey }, context.previous); toast.error("Could not save that update"); }, onSettled: () => utils.todo.dashboard.invalidate({ dayKey }) });
+  const removeTask = trpc.todo.remove.useMutation({
+    onMutate: async ({ taskId }) => {
+      await utils.todo.dashboard.cancel({ dayKey });
+      const previous = utils.todo.dashboard.getData({ dayKey });
+      utils.todo.dashboard.setData({ dayKey }, old => old ? ({
+        ...old,
+        tasks: old.tasks.filter(t => t.id !== taskId),
+        completions: old.completions.filter(c => c.taskId !== taskId),
+      }) : old);
+      return { previous };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previous) utils.todo.dashboard.setData({ dayKey }, context.previous);
+      toast.error("Could not remove task");
+    },
+    onSuccess: () => {
+      toast.success("Task removed");
+    },
+    onSettled: () => {
+      utils.todo.dashboard.invalidate({ dayKey });
+    },
+  });
   const [newTask, setNewTask] = useState("");
   if (loading) return <div className="loading-screen"><RefreshCw className="spin" size={22} /> Loading your space…</div>;
   if (!isAuthenticated || !user) return <AuthLanding />;
@@ -201,7 +223,7 @@ export default function Home() {
           </div>
         )}
       </div>
-      <div className="dashboard-grid"><section className="tasks-card card-surface"><div className="section-heading"><div><p className="eyebrow">Shared list</p><h2>Small steps count</h2></div><span className="progress-number">{percent}%</span></div><div className="progress-track"><span style={{ width: `${percent}%` }}></span></div><p className="muted-copy tasks-summary">{doneCount} of {data?.tasks.length || 0} done by you · {partner ? `${labelFor(partner)} is checking in too` : "invite your person to begin"}</p><div className="task-list">{data?.tasks.map((task, index) => <div className={`task-row ${isDone(task.id, user.id) && (!partner || isDone(task.id, partner.id)) ? "completed" : ""}`} key={task.id}><div className="task-content"><span className="task-index">0{index + 1}</span><span className="task-title">{task.title}</span></div><div className="people-checks" title="Each person marks their own completion"><PersonMark label={labelFor(me)} tone="mine" done={isDone(task.id, user.id)} onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !isDone(task.id, user.id) })} />{partner ? <PersonMark label={labelFor(partner)} tone="partner" done={isDone(task.id, partner.id)} onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !isDone(task.id, partner.id) })} /> : <span className="person-mark waiting">?</span>}</div></div>)}</div><div className="add-task"><Input value={newTask} onChange={(event) => setNewTask(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitTask(); }} placeholder="Add another task…" /><Button className="add-button" onClick={submitTask} disabled={!newTask.trim() || addTask.isPending}><Plus size={18} /></Button></div></section><div className="side-stack"><div className="people-card card-surface"><div className="section-heading"><div><p className="eyebrow">Your duo</p><h2>In it together</h2></div><Users size={19} className="heading-icon" /></div><div className="person-line"><span className="avatar avatar-a">{labelFor(me).slice(0, 1)}</span><div><strong>{labelFor(me)}</strong><small>your progress</small></div><span className="person-status">{doneCount}/{data?.tasks.length || 0}</span></div><div className="person-line"><span className="avatar avatar-b">{partner ? labelFor(partner).slice(0, 1) : "?"}</span><div><strong>{partner ? labelFor(partner) : "Waiting for your person"}</strong><small>{partner ? "their progress" : "share the invite code"}</small></div><span className="person-status">{partner ? `${data?.tasks.filter(task => isDone(task.id, partner.id)).length || 0}/${data?.tasks.length || 0}` : "—"}</span></div><button className="copy-code" onClick={copyCode}><Clipboard size={15} /> Copy invite code <strong>{duoQuery.data.inviteCode}</strong></button></div><Consistency members={members} completions={completions} dayKey={dayKey} /></div></div>
+      <div className="dashboard-grid"><section className="tasks-card card-surface"><div className="section-heading"><div><p className="eyebrow">Shared list</p><h2>Small steps count</h2></div><span className="progress-number">{percent}%</span></div><div className="progress-track"><span style={{ width: `${percent}%` }}></span></div><p className="muted-copy tasks-summary">{doneCount} of {data?.tasks.length || 0} done by you · {partner ? `${labelFor(partner)} is checking in too` : "invite your person to begin"}</p><div className="task-list">{data?.tasks.map((task, index) => <div className={`task-row ${isDone(task.id, user.id) && (!partner || isDone(task.id, partner.id)) ? "completed" : ""}`} key={task.id}><div className="task-content"><span className="task-index">0{index + 1}</span><span className="task-title">{task.title}</span></div><div className="task-actions"><div className="people-checks" title="Each person marks their own completion"><PersonMark label={labelFor(me)} tone="mine" done={isDone(task.id, user.id)} onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !isDone(task.id, user.id) })} />{partner ? <PersonMark label={labelFor(partner)} tone="partner" done={isDone(task.id, partner.id)} onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !isDone(task.id, partner.id)} )} /> : <span className="person-mark waiting">?</span>}</div><button className="task-remove-btn" onClick={() => removeTask.mutate({ taskId: task.id })} disabled={removeTask.isPending} title="Remove task" aria-label={`Remove task ${task.title}`}><Trash2 size={15} /></button></div></div>)}</div><div className="add-task"><Input value={newTask} onChange={(event) => setNewTask(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitTask(); }} placeholder="Add another task…" /><Button className="add-button" onClick={submitTask} disabled={!newTask.trim() || addTask.isPending}><Plus size={18} /></Button></div></section><div className="side-stack"><div className="people-card card-surface"><div className="section-heading"><div><p className="eyebrow">Your duo</p><h2>In it together</h2></div><Users size={19} className="heading-icon" /></div><div className="person-line"><span className="avatar avatar-a">{labelFor(me).slice(0, 1)}</span><div><strong>{labelFor(me)}</strong><small>your progress</small></div><span className="person-status">{doneCount}/{data?.tasks.length || 0}</span></div><div className="person-line"><span className="avatar avatar-b">{partner ? labelFor(partner).slice(0, 1) : "?"}</span><div><strong>{partner ? labelFor(partner) : "Waiting for your person"}</strong><small>{partner ? "their progress" : "share the invite code"}</small></div><span className="person-status">{partner ? `${data?.tasks.filter(task => isDone(task.id, partner.id)).length || 0}/${data?.tasks.length || 0}` : "—"}</span></div><button className="copy-code" onClick={copyCode}><Clipboard size={15} /> Copy invite code <strong>{duoQuery.data.inviteCode}</strong></button></div><Consistency members={members} completions={completions} dayKey={dayKey} /></div></div>
       <footer className="app-footer"><span><Sparkles size={14} /> DuoDay refreshes automatically while you’re both here.</span><button onClick={() => dashboard.refetch()}><RefreshCw size={14} /> Refresh</button></footer>
     </main>
   </div>;
