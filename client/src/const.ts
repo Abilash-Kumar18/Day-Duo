@@ -3,11 +3,11 @@ import { OAUTH_STATE_COOKIE, encodeOAuthState } from "@shared/const";
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
 export const startLogin = () => {
-  const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID || "";
+  const githubClientId = import.meta.env.CLIENT_ID || "";
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
 
   if (!githubClientId) {
-    console.warn("[Auth] GitHub Client ID is not configured (VITE_GITHUB_CLIENT_ID)");
+    console.warn("[Auth] GitHub Client ID is not configured (CLIENT_ID)");
     return;
   }
 
