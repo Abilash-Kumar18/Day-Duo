@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { ENV } from "./env";
+import { ENV } from "./env.js";
 
 export type HeartbeatJob = {
   name: string;
@@ -211,3 +211,4 @@ export async function listHeartbeatJobs(
     jobs: HeartbeatJobInfo[];
   }>("ListHeartbeatJobs", body, userSession);
 }
+

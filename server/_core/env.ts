@@ -9,3 +9,4 @@ export const ENV = {
   forgeApiUrl: process.env.FORGE_API_URL ?? "https://api.dev.forge.build",
   forgeApiKey: process.env.FORGE_API_KEY ?? "",
 };
+

@@ -4,3 +4,4 @@ declare module "cookie" {
     options?: Record<string, unknown>
   ): Record<string, string>;
 }
+

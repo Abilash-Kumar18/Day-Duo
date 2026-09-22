@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDayKeys } from "./db";
+import { getDayKeys } from "./db.js";
 
 describe("DuoDay history", () => {
   it("returns an ordered 28-day window ending on the selected day", () => {
@@ -10,3 +10,4 @@ describe("DuoDay history", () => {
     expect(days.every((day, index) => index === 0 || day > days[index - 1]!)).toBe(true);
   });
 });
+

@@ -110,5 +110,6 @@
                  "overrides":  {
                                    "tailwindcss\u003enanoid":  "3.3.7"
                                }
-             }
+             },
+    "type":  "module"
 }

@@ -69,3 +69,4 @@ export interface GetUserInfoWithJwtResponse {
   /** Cron-only; references `schedule_task.uid`. */
   taskUid?: string | null;
 }
+
