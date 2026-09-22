@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { duoMembers, duos, InsertUser, taskCompletions, tasks, users, User, Duo, DuoMember, Task, TaskCompletion } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -8,7 +9,8 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL && process.env.DATABASE_URL.trim().length > 0) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const poolConnection = mysql.createPool(process.env.DATABASE_URL);
+      _db = drizzle(poolConnection);
     } catch (error) {
       console.warn("[Database] Failed to initialize database connection:", error);
       _db = null;
