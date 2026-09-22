@@ -40,4 +40,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-export default app;
+export default function handler(req: express.Request, res: express.Response) {
+  return app(req, res);
+}
