@@ -299,6 +299,30 @@ export async function addTask(duoId: number, userId: number, title: string) {
   return id;
 }
 
+export async function removeTask(duoId: number, taskId: number) {
+  const db = await getDb();
+  if (db) {
+    try {
+      await db.delete(taskCompletions).where(eq(taskCompletions.taskId, taskId));
+      await db.delete(tasks).where(and(eq(tasks.id, taskId), eq(tasks.duoId, duoId)));
+      return;
+    } catch (error) {
+      console.warn("[Database] Error in removeTask MySQL, using memory fallback:", error);
+    }
+  }
+
+  // Memory fallback
+  const taskIndex = memTasks.findIndex(t => t.id === taskId && t.duoId === duoId);
+  if (taskIndex !== -1) {
+    memTasks.splice(taskIndex, 1);
+  }
+  for (const [key, comp] of memCompletions.entries()) {
+    if (comp.taskId === taskId) {
+      memCompletions.delete(key);
+    }
+  }
+}
+
 export async function setCompletion(taskId: number, userId: number, dayKey: string, isDone: boolean) {
   const db = await getDb();
   if (db) {
