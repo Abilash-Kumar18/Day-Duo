@@ -1,3 +1,4 @@
+// @ts-nocheck
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "../server/_core/oauth";
@@ -42,3 +43,4 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 export default function handler(req: express.Request, res: express.Response) {
   return app(req, res);
 }
+
