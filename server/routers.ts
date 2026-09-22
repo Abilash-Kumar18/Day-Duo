@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { createDuo, addTask, removeTask, getCompletions, getDayKeys, getDuoForUser, getDuoMembers, getTasks, isDuoMember, joinDuo, setCompletion, upsertUser, getUserByOpenId } from "./db";
 import { systemRouter } from "./_core/systemRouter";
