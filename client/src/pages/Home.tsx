@@ -16,8 +16,43 @@ function AppMark() {
   return <div className="app-mark" aria-label="DuoDay logo"><span></span><span></span></div>;
 }
 
-function PersonMark({ label, done, tone, onClick }: { label: string; done: boolean; tone: "mine" | "partner"; onClick: () => void }) {
-  return <button className={`person-mark ${tone} ${done ? "done" : ""}`} onClick={onClick} aria-label={`${done ? "Unmark" : "Mark"} ${label}`} title={`${label}: ${done ? "completed" : "not completed"}`}><span className="person-mark-letter">{label.slice(0, 1)}</span>{done && <Check size={12} strokeWidth={3} />}</button>;
+function PersonMark({
+  label,
+  done,
+  tone,
+  isMe,
+  onClick,
+}: {
+  label: string;
+  done: boolean;
+  tone: "mine" | "partner";
+  isMe: boolean;
+  onClick?: () => void;
+}) {
+  if (isMe) {
+    return (
+      <button
+        type="button"
+        className={`person-mark ${tone} ${done ? "done" : ""}`}
+        onClick={onClick}
+        aria-label={`${done ? "Unmark" : "Mark"} ${label}`}
+        title={`Your check (${label}): ${done ? "Completed" : "Not completed - click to mark"}`}
+      >
+        <span className="person-mark-letter">{label.slice(0, 1)}</span>
+        {done && <Check size={12} strokeWidth={3} />}
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className={`person-mark ${tone} ${done ? "done" : "partner-pending"}`}
+      title={`${label}'s check: ${done ? "Completed" : "Not completed yet"}`}
+    >
+      <span className="person-mark-letter">{label.slice(0, 1)}</span>
+      {done ? <Check size={12} strokeWidth={3} /> : <span className="pending-dot">•</span>}
+    </div>
+  );
 }
 
 function AuthLanding() {
@@ -128,6 +163,7 @@ export default function Home() {
   const { user, loading, isAuthenticated, logout } = useAuth();
   const [day, setDay] = useState(() => new Date());
   const [showCalendar, setShowCalendar] = useState(false);
+  const [filter, setFilter] = useState<"all" | "both" | "pending_partner" | "pending_me">("all");
   const calendarRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -149,7 +185,26 @@ export default function Home() {
   const dashboard = trpc.todo.dashboard.useQuery({ dayKey }, { enabled: Boolean(isAuthenticated && duoQuery.data), refetchInterval: 5000 });
   const utils = trpc.useUtils();
   const addTask = trpc.todo.add.useMutation({ onSuccess: () => { utils.todo.dashboard.invalidate(); toast.success("Task added"); }, onError: (error) => toast.error(error.message) });
-  const toggleTask = trpc.todo.toggle.useMutation({ onMutate: async ({ taskId, isDone }) => { await utils.todo.dashboard.cancel({ dayKey }); const previous = utils.todo.dashboard.getData({ dayKey }); utils.todo.dashboard.setData({ dayKey }, old => old ? ({ ...old, completions: [...old.completions.filter(item => !(item.taskId === taskId && item.userId === user?.id && item.dayKey === dayKey)), { id: -Date.now(), taskId, userId: user?.id || 0, dayKey, isDone: isDone ? 1 : 0, updatedAt: new Date() }] }) : old); return { previous }; }, onError: (_error, _input, context) => { if (context?.previous) utils.todo.dashboard.setData({ dayKey }, context.previous); toast.error("Could not save that update"); }, onSettled: () => utils.todo.dashboard.invalidate({ dayKey }) });
+  const toggleTask = trpc.todo.toggle.useMutation({
+    onMutate: async ({ taskId, isDone }) => {
+      await utils.todo.dashboard.cancel({ dayKey });
+      const previous = utils.todo.dashboard.getData({ dayKey });
+      utils.todo.dashboard.setData({ dayKey }, old => old ? ({
+        ...old,
+        completions: [
+          ...old.completions.filter(item => !(item.taskId === taskId && item.userId === user?.id && item.dayKey === dayKey)),
+          { id: -Date.now(), taskId, userId: user?.id || 0, dayKey, isDone: isDone ? 1 : 0, updatedAt: new Date() }
+        ]
+      }) : old);
+      return { previous };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previous) utils.todo.dashboard.setData({ dayKey }, context.previous);
+      toast.error("Could not save that update");
+    },
+    onSettled: () => utils.todo.dashboard.invalidate({ dayKey })
+  });
+
   const removeTask = trpc.todo.remove.useMutation({
     onMutate: async ({ taskId }) => {
       await utils.todo.dashboard.cancel({ dayKey });
@@ -172,26 +227,74 @@ export default function Home() {
       utils.todo.dashboard.invalidate({ dayKey });
     },
   });
+
   const [newTask, setNewTask] = useState("");
+
   if (loading) return <div className="loading-screen"><RefreshCw className="spin" size={22} /> Loading your space…</div>;
   if (!isAuthenticated || !user) return <AuthLanding />;
   if (duoQuery.isLoading) return <div className="loading-screen"><RefreshCw className="spin" size={22} /> Finding your duo…</div>;
   if (!duoQuery.data) return <DuoSetup onReady={() => { duoQuery.refetch(); }} />;
+
   const data = dashboard.data;
   const members = data?.members || duoQuery.data.members;
   const me = members.find(member => member.id === user.id);
   const partner = members.find(member => member.id !== user.id);
   const labelFor = (member: typeof members[number] | undefined) => member?.nickname || member?.name?.split(" ")[0] || "Partner";
   const completions = data?.completions || [];
+
   const isDone = (taskId: number, memberId: number) => completions.some(item => item.taskId === taskId && item.userId === memberId && item.dayKey === dayKey && item.isDone === 1);
-  const doneCount = data?.tasks.filter(task => isDone(task.id, user.id)).length || 0;
-  const percent = data?.tasks.length ? Math.round((doneCount / data.tasks.length) * 100) : 0;
+
+  const allTasks = data?.tasks || [];
+
+  // Shared task metrics
+  const myDoneCount = allTasks.filter(task => isDone(task.id, user.id)).length;
+  const partnerDoneCount = partner ? allTasks.filter(task => isDone(task.id, partner.id)).length : 0;
+  
+  // A task is fully completed when BOTH have marked it (or 1 if partner hasn't joined)
+  const isBothDone = (taskId: number) => {
+    const myCheck = isDone(taskId, user.id);
+    if (!partner) return myCheck;
+    const partnerCheck = isDone(taskId, partner.id);
+    return myCheck && partnerCheck;
+  };
+
+  const bothDoneCount = allTasks.filter(task => isBothDone(task.id)).length;
+  const percent = allTasks.length ? Math.round((bothDoneCount / allTasks.length) * 100) : 0;
+
+  // Filter tasks based on transparency tabs
+  const filteredTasks = allTasks.filter(task => {
+    const myCheck = isDone(task.id, user.id);
+    const partnerCheck = partner ? isDone(task.id, partner.id) : false;
+    if (filter === "both") return isBothDone(task.id);
+    if (filter === "pending_partner") return partner ? (myCheck && !partnerCheck) : false;
+    if (filter === "pending_me") return !myCheck;
+    return true;
+  });
+
   const shiftDay = (amount: number) => { const next = new Date(day); next.setDate(next.getDate() + amount); setDay(next); };
   const submitTask = () => { if (!newTask.trim()) return; addTask.mutate({ title: newTask.trim() }); setNewTask(""); };
   const copyCode = async () => { await navigator.clipboard?.writeText(duoQuery.data?.inviteCode || ""); toast.success("Invite code copied"); };
+
   return <div className="app-shell">
-    <header className="topbar"><div className="brand-lockup"><AppMark /><span className="brand-word">DuoDay</span></div><div className="topbar-right"><div className="online-dot"><span></span> synced</div><button className="icon-button" onClick={() => logout()} title="Sign out"><LogOut size={17} /></button></div></header>
-    <main className="dashboard"><div className="welcome-row"><div><p className="eyebrow">Good to see you, {labelFor(me)}</p><h1>Today, together.</h1></div><button className="invite-pill" onClick={copyCode}><Link2 size={15} /> <span>Invite {labelFor(partner)}</span><Copy size={14} /></button></div>
+    <header className="topbar">
+      <div className="brand-lockup"><AppMark /><span className="brand-word">DuoDay</span></div>
+      <div className="topbar-right">
+        <div className="online-dot"><span></span> synced</div>
+        <button className="icon-button" onClick={() => logout()} title="Sign out"><LogOut size={17} /></button>
+      </div>
+    </header>
+
+    <main className="dashboard">
+      <div className="welcome-row">
+        <div>
+          <p className="eyebrow">Good to see you, {labelFor(me)}</p>
+          <h1>Today, together.</h1>
+        </div>
+        <button className="invite-pill" onClick={copyCode}>
+          <Link2 size={15} /> <span>Invite {partner ? labelFor(partner) : "Partner"}</span><Copy size={14} />
+        </button>
+      </div>
+
       <div className="date-nav-wrapper" ref={calendarRef}>
         <div className="date-nav">
           <button className="icon-button soft" onClick={() => shiftDay(-1)} title="Previous Day"><ArrowLeft size={17} /></button>
@@ -223,8 +326,181 @@ export default function Home() {
           </div>
         )}
       </div>
-      <div className="dashboard-grid"><section className="tasks-card card-surface"><div className="section-heading"><div><p className="eyebrow">Shared list</p><h2>Small steps count</h2></div><span className="progress-number">{percent}%</span></div><div className="progress-track"><span style={{ width: `${percent}%` }}></span></div><p className="muted-copy tasks-summary">{doneCount} of {data?.tasks.length || 0} done by you · {partner ? `${labelFor(partner)} is checking in too` : "invite your person to begin"}</p><div className="task-list">{data?.tasks.map((task, index) => <div className={`task-row ${isDone(task.id, user.id) && (!partner || isDone(task.id, partner.id)) ? "completed" : ""}`} key={task.id}><div className="task-content"><span className="task-index">0{index + 1}</span><span className="task-title">{task.title}</span></div><div className="task-actions"><div className="people-checks" title="Each person marks their own completion"><PersonMark label={labelFor(me)} tone="mine" done={isDone(task.id, user.id)} onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !isDone(task.id, user.id) })} />{partner ? <PersonMark label={labelFor(partner)} tone="partner" done={isDone(task.id, partner.id)} onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !isDone(task.id, partner.id)} )} /> : <span className="person-mark waiting">?</span>}</div><button className="task-remove-btn" onClick={() => removeTask.mutate({ taskId: task.id })} disabled={removeTask.isPending} title="Remove task" aria-label={`Remove task ${task.title}`}><Trash2 size={15} /></button></div></div>)}</div><div className="add-task"><Input value={newTask} onChange={(event) => setNewTask(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitTask(); }} placeholder="Add another task…" /><Button className="add-button" onClick={submitTask} disabled={!newTask.trim() || addTask.isPending}><Plus size={18} /></Button></div></section><div className="side-stack"><div className="people-card card-surface"><div className="section-heading"><div><p className="eyebrow">Your duo</p><h2>In it together</h2></div><Users size={19} className="heading-icon" /></div><div className="person-line"><span className="avatar avatar-a">{labelFor(me).slice(0, 1)}</span><div><strong>{labelFor(me)}</strong><small>your progress</small></div><span className="person-status">{doneCount}/{data?.tasks.length || 0}</span></div><div className="person-line"><span className="avatar avatar-b">{partner ? labelFor(partner).slice(0, 1) : "?"}</span><div><strong>{partner ? labelFor(partner) : "Waiting for your person"}</strong><small>{partner ? "their progress" : "share the invite code"}</small></div><span className="person-status">{partner ? `${data?.tasks.filter(task => isDone(task.id, partner.id)).length || 0}/${data?.tasks.length || 0}` : "—"}</span></div><button className="copy-code" onClick={copyCode}><Clipboard size={15} /> Copy invite code <strong>{duoQuery.data.inviteCode}</strong></button></div><Consistency members={members} completions={completions} dayKey={dayKey} /></div></div>
-      <footer className="app-footer"><span><Sparkles size={14} /> DuoDay refreshes automatically while you’re both here.</span><button onClick={() => dashboard.refetch()}><RefreshCw size={14} /> Refresh</button></footer>
+
+      <div className="dashboard-grid">
+        <section className="tasks-card card-surface">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Shared Tasks</p>
+              <h2>Both must mark to complete</h2>
+            </div>
+            <span className="progress-number">{percent}%</span>
+          </div>
+
+          <div className="progress-track">
+            <span style={{ width: `${percent}%` }}></span>
+          </div>
+
+          <p className="muted-copy tasks-summary">
+            <strong>{bothDoneCount} of {allTasks.length}</strong> tasks completed by both of you · {partner ? `Transparency active with ${labelFor(partner)}` : "Invite partner to start sharing"}
+          </p>
+
+          {/* Filter / Transparency Tabs */}
+          <div className="task-filters">
+            <button className={`filter-btn ${filter === "all" ? "active" : ""}`} onClick={() => setFilter("all")}>
+              All ({allTasks.length})
+            </button>
+            <button className={`filter-btn ${filter === "both" ? "active" : ""}`} onClick={() => setFilter("both")}>
+              Both Completed ({bothDoneCount})
+            </button>
+            {partner && (
+              <>
+                <button className={`filter-btn ${filter === "pending_partner" ? "active" : ""}`} onClick={() => setFilter("pending_partner")}>
+                  Awaiting {labelFor(partner)} ({allTasks.filter(t => isDone(t.id, user.id) && !isDone(t.id, partner.id)).length})
+                </button>
+                <button className={`filter-btn ${filter === "pending_me" ? "active" : ""}`} onClick={() => setFilter("pending_me")}>
+                  Awaiting You ({allTasks.filter(t => !isDone(t.id, user.id)).length})
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Task List */}
+          <div className="task-list">
+            {filteredTasks.length === 0 ? (
+              <div className="empty-tasks-notice">
+                <p>No tasks match this filter for {formatDate(dayKey)}.</p>
+              </div>
+            ) : (
+              filteredTasks.map((task, index) => {
+                const myCheck = isDone(task.id, user.id);
+                const partnerCheck = partner ? isDone(task.id, partner.id) : false;
+                const fullyDone = isBothDone(task.id);
+                const partiallyDone = (myCheck || partnerCheck) && !fullyDone;
+
+                return (
+                  <div
+                    className={`task-row ${fullyDone ? "completed" : ""} ${partiallyDone ? "partially-completed" : ""}`}
+                    key={task.id}
+                  >
+                    <div className="task-content">
+                      <span className="task-index">0{index + 1}</span>
+                      <div className="task-title-group">
+                        <span className="task-title">{task.title}</span>
+                        {fullyDone ? (
+                          <span className="status-badge status-both"><Check size={11} /> Both completed</span>
+                        ) : myCheck && partner ? (
+                          <span className="status-badge status-waiting">Waiting for {labelFor(partner)}</span>
+                        ) : partnerCheck ? (
+                          <span className="status-badge status-needs-you">{labelFor(partner)} completed · Needs you</span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="task-actions">
+                      <div className="people-checks" title="Click your mark to toggle your completion">
+                        <PersonMark
+                          label={labelFor(me)}
+                          tone="mine"
+                          done={myCheck}
+                          isMe={true}
+                          onClick={() => toggleTask.mutate({ taskId: task.id, dayKey, isDone: !myCheck })}
+                        />
+                        {partner ? (
+                          <PersonMark
+                            label={labelFor(partner)}
+                            tone="partner"
+                            done={partnerCheck}
+                            isMe={false}
+                          />
+                        ) : (
+                          <span className="person-mark waiting" title="Waiting for partner to join">?</span>
+                        )}
+                      </div>
+
+                      <button
+                        className="task-remove-btn"
+                        onClick={() => removeTask.mutate({ taskId: task.id })}
+                        disabled={removeTask.isPending}
+                        title="Delete task"
+                        aria-label={`Delete task ${task.title}`}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Add Task Input */}
+          <div className="add-task">
+            <Input
+              value={newTask}
+              onChange={(event) => setNewTask(event.target.value)}
+              onKeyDown={(event) => { if (event.key === "Enter") submitTask(); }}
+              placeholder="Add a new shared task for both of you..."
+            />
+            <Button
+              className="add-button"
+              onClick={submitTask}
+              disabled={!newTask.trim() || addTask.isPending}
+              title="Add task"
+            >
+              <Plus size={18} />
+            </Button>
+          </div>
+        </section>
+
+        {/* Transparency & Duo Side Stack */}
+        <div className="side-stack">
+          <div className="people-card card-surface">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Shared Transparency</p>
+                <h2>Duo Status</h2>
+              </div>
+              <Users size={19} className="heading-icon" />
+            </div>
+
+            <div className="person-line">
+              <span className="avatar avatar-a">{labelFor(me).slice(0, 1)}</span>
+              <div>
+                <strong>{labelFor(me)} (You)</strong>
+                <small>{myDoneCount} of {allTasks.length} tasks marked</small>
+              </div>
+              <span className="person-status">{myDoneCount}/{allTasks.length}</span>
+            </div>
+
+            <div className="person-line">
+              <span className="avatar avatar-b">{partner ? labelFor(partner).slice(0, 1) : "?"}</span>
+              <div>
+                <strong>{partner ? labelFor(partner) : "Waiting for partner"}</strong>
+                <small>{partner ? `${partnerDoneCount} of ${allTasks.length} tasks marked` : "Share the code below"}</small>
+              </div>
+              <span className="person-status">{partner ? `${partnerDoneCount}/${allTasks.length}` : "—"}</span>
+            </div>
+
+            <div className="transparency-callout">
+              <Sparkles size={14} />
+              <span>A task turns green when <strong>both of you</strong> mark it completed!</span>
+            </div>
+
+            <button className="copy-code" onClick={copyCode}>
+              <Clipboard size={15} /> Copy invite code <strong>{duoQuery.data.inviteCode}</strong>
+            </button>
+          </div>
+
+          <Consistency members={members} completions={completions} dayKey={dayKey} />
+        </div>
+      </div>
+
+      <footer className="app-footer">
+        <span><Sparkles size={14} /> DuoDay refreshes automatically to keep partner status synced live.</span>
+        <button onClick={() => dashboard.refetch()}><RefreshCw size={14} /> Refresh</button>
+      </footer>
     </main>
   </div>;
 }
+

@@ -3,12 +3,11 @@ import { OAUTH_STATE_COOKIE, encodeOAuthState } from "@shared/const";
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
 export const startLogin = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "";
-  const appId = import.meta.env.VITE_APP_ID || "";
+  const githubClientId = import.meta.env.CLIENT_ID || "";
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
 
-  if (!oauthPortalUrl) {
-    console.warn("[Auth] OAuth portal URL is not configured (VITE_OAUTH_PORTAL_URL)");
+  if (!githubClientId) {
+    console.warn("[Auth] GitHub Client ID is not configured (CLIENT_ID)");
     return;
   }
 
@@ -17,12 +16,11 @@ export const startLogin = () => {
     document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=None; Secure`;
     const state = encodeOAuthState({ redirectUri, nonce });
 
-    const baseUrl = oauthPortalUrl.startsWith("http") ? oauthPortalUrl : `https://${oauthPortalUrl}`;
-    const url = new URL(`${baseUrl}/app-auth`);
-    url.searchParams.set("appId", appId);
-    url.searchParams.set("redirectUri", redirectUri);
+    const url = new URL("https://github.com/login/oauth/authorize");
+    url.searchParams.set("client_id", githubClientId);
+    url.searchParams.set("redirect_uri", redirectUri);
     url.searchParams.set("state", state);
-    url.searchParams.set("type", "signIn");
+    url.searchParams.set("scope", "read:user user:email");
 
     window.location.href = url.toString();
   } catch (error) {
