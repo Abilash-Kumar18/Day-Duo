@@ -86,7 +86,7 @@ function AuthLanding() {
         <div className="landing-copy">
           <p className="eyebrow">A little momentum, together</p>
           <h1>Make today easier to finish.</h1>
-          <p className="landing-subtitle">A shared daily list for two teammate who want to show up, check in, and keep going.</p>
+          <p className="landing-subtitle">A shared daily list for two teammate who want to show up their coordination, check in, and keep going.</p>
           <div className="mt-7 flex flex-col gap-3 max-w-sm">
             <div className="flex gap-2">
               <Input
