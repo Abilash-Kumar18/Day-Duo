@@ -255,7 +255,7 @@ export default function ComponentsShowcase() {
                         Foreground (Default)
                       </p>
                       <p className="text-foreground text-lg">
-                        Default text color for main content
+                        Default text color for main Title
                       </p>
                     </div>
                     <div>
