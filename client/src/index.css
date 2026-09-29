@@ -893,43 +893,314 @@ html.dark .segmented button.active {
 html.dark .field-label { color: #9bb0a2; }
 
 /* ----------------------------------------------------
-   RESPONSIVE MEDIA QUERIES
+   NIGHT SKY DYNAMIC BACKGROUND (DARK THEME)
 ---------------------------------------------------- */
+.night-sky-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  animation: nightSkyFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes nightSkyFadeIn {
+  from { opacity: 0; transform: scale(1.02); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Cosmic Nebula Clouds */
+.space-nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(85px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+.space-nebula-1 {
+  width: 580px;
+  height: 580px;
+  top: -120px;
+  right: 5%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(228, 125, 105, 0.1) 50%, transparent 70%);
+  animation: nebulaDrift 24s ease-in-out infinite alternate;
+}
+.space-nebula-2 {
+  width: 650px;
+  height: 650px;
+  bottom: -150px;
+  left: 2%;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.1) 0%, rgba(16, 185, 129, 0.04) 55%, transparent 75%);
+  animation: nebulaDrift2 30s ease-in-out infinite alternate;
+}
+
+@keyframes nebulaDrift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-30px, 20px) scale(1.08); }
+  100% { transform: translate(25px, -15px) scale(0.95); }
+}
+@keyframes nebulaDrift2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -25px) scale(1.12); }
+  100% { transform: translate(-20px, 30px) scale(0.92); }
+}
+
+/* Dynamic Floating Moon with Aura */
+.celestial-moon-wrap {
+  position: absolute;
+  top: 55px;
+  right: max(4%, calc((100vw - 1280px) / 2));
+  width: 95px;
+  height: 95px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: celestialMoonOrbit 22s ease-in-out infinite alternate;
+  transform-origin: center center;
+}
+
+@keyframes celestialMoonOrbit {
+  0% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-14px) translateX(-10px) rotate(-3deg);
+  }
+  70% {
+    transform: translateY(8px) translateX(-18px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(-8px) translateX(-6px) rotate(4deg);
+  }
+}
+
+.celestial-moon {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 32%, #fffdf2 0%, #fde68a 35%, #eab308 72%, #b45309 100%);
+  box-shadow:
+    0 0 25px rgba(253, 230, 138, 0.6),
+    0 0 60px rgba(245, 158, 11, 0.35),
+    0 0 110px rgba(245, 158, 11, 0.18),
+    inset -8px -8px 16px rgba(120, 53, 15, 0.45),
+    inset 4px 4px 10px rgba(255, 255, 255, 0.8);
+  z-index: 2;
+  overflow: hidden;
+}
+
+.moon-glow-inner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 75% 75%, transparent 60%, rgba(146, 64, 14, 0.35) 100%);
+}
+
+/* Realistic lunar craters */
+.moon-crater {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(180, 83, 9, 0.28);
+  box-shadow: inset 1px 1px 2px rgba(120, 53, 15, 0.5), 0 1px 1px rgba(255, 255, 255, 0.25);
+}
+.crater-1 { width: 14px; height: 14px; top: 22%; left: 48%; }
+.crater-2 { width: 9px; height: 9px; top: 56%; left: 32%; }
+.crater-3 { width: 16px; height: 16px; top: 52%; left: 58%; }
+.crater-4 { width: 7px; height: 7px; top: 34%; left: 24%; }
+
+/* Moon Atmospheric Rings */
+.moon-aura-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(253, 230, 138, 0.18);
+  pointer-events: none;
+}
+.ring-1 {
+  width: 120px;
+  height: 120px;
+  animation: auraPulse1 5s ease-in-out infinite alternate;
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.12);
+}
+.ring-2 {
+  width: 155px;
+  height: 155px;
+  border-color: rgba(251, 191, 36, 0.08);
+  animation: auraPulse2 7s ease-in-out infinite alternate;
+}
+
+@keyframes auraPulse1 {
+  0% { transform: scale(0.96); opacity: 0.5; }
+  100% { transform: scale(1.06); opacity: 0.9; }
+}
+@keyframes auraPulse2 {
+  0% { transform: scale(0.94); opacity: 0.3; }
+  100% { transform: scale(1.08); opacity: 0.7; }
+}
+
+/* ----------------------------------------------------
+   STARFIELD & DIAMOND GLITTER PARTICLES
+---------------------------------------------------- */
+.stars-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.star-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.normal-star {
+  background: #ffffff;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.85);
+  animation: starTwinkle infinite ease-in-out;
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.25);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 1), 0 0 14px rgba(254, 240, 138, 0.8);
+  }
+}
+
+/* Glitter Diamond Sparkle Star */
+.glitter-star {
+  background: radial-gradient(circle, #ffffff 30%, #fef08a 80%);
+  box-shadow: 0 0 10px rgba(254, 240, 138, 0.9);
+  animation: diamondGlitter infinite ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-sparkle-cross {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+.star-sparkle-cross::before,
+.star-sparkle-cross::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+}
+.star-sparkle-cross::before {
+  width: 14px;
+  height: 1.5px;
+}
+.star-sparkle-cross::after {
+  width: 1.5px;
+  height: 14px;
+}
+
+@keyframes diamondGlitter {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(0.6) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4) rotate(45deg);
+    box-shadow: 0 0 14px rgba(254, 240, 138, 1), 0 0 24px rgba(251, 191, 36, 0.6);
+  }
+}
+
+/* ----------------------------------------------------
+   SHOOTING STARS / METEORS
+---------------------------------------------------- */
+.shooting-star-trail {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  width: 110px;
+  height: 2px;
+  background: linear-gradient(90deg, #ffffff, rgba(254, 240, 138, 0.6), transparent);
+  border-radius: 999px;
+  opacity: 0;
+  transform: rotate(-38deg);
+  filter: drop-shadow(0 0 6px rgba(254, 240, 138, 0.9));
+  pointer-events: none;
+}
+
+.meteor-1 {
+  top: 12%;
+  left: 70%;
+  animation: shootingStar1 9s ease-in-out infinite 2s;
+}
+.meteor-2 {
+  top: 30%;
+  left: 35%;
+  animation: shootingStar2 13s ease-in-out infinite 6s;
+}
+.meteor-3 {
+  top: 8%;
+  left: 20%;
+  animation: shootingStar3 16s ease-in-out infinite 10s;
+}
+
+@keyframes shootingStar1 {
+  0% { transform: translate(0, 0) rotate(-38deg) scaleX(0); opacity: 0; }
+  2% { transform: translate(-40px, 35px) rotate(-38deg) scaleX(1); opacity: 1; }
+  6% { transform: translate(-180px, 150px) rotate(-38deg) scaleX(0.4); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes shootingStar2 {
+  0% { transform: translate(0, 0) rotate(-35deg) scaleX(0); opacity: 0; }
+  2% { transform: translate(-50px, 40px) rotate(-35deg) scaleX(1); opacity: 1; }
+  6% { transform: translate(-220px, 180px) rotate(-35deg) scaleX(0.3); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes shootingStar3 {
+  0% { transform: translate(0, 0) rotate(-42deg) scaleX(0); opacity: 0; }
+  2% { transform: translate(-45px, 45px) rotate(-42deg) scaleX(1); opacity: 1; }
+  6% { transform: translate(-200px, 190px) rotate(-42deg) scaleX(0.3); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Ensure foreground cards and app content sit crisp and layered */
+.app-shell, .landing-shell, .setup-shell {
+  position: relative;
+  z-index: 1;
+}
+
 @media (max-width: 850px) {
-  .dashboard-grid { grid-template-columns: 1fr; }
-  .side-stack { display: grid; grid-template-columns: 1fr 1fr; }
-  .welcome-row { align-items: flex-start; flex-direction: column; }
-  .invite-pill { align-self: stretch; justify-content: center; }
+  .celestial-moon-wrap {
+    width: 75px;
+    height: 75px;
+    top: 40px;
+    right: 20px;
+  }
+  .celestial-moon {
+    width: 60px;
+    height: 60px;
+  }
+  .ring-1 { width: 90px; height: 90px; }
+  .ring-2 { width: 120px; height: 120px; }
 }
 
 @media (max-width: 600px) {
-  .topbar { height: 64px; padding: 0 17px; }
-  .online-dot { display: none; }
-  .dashboard { padding: 34px 15px 24px; }
-  .tasks-card, .people-card, .consistency-card { padding: 20px 17px; border-radius: 20px; }
-  .side-stack { display: flex; }
-  .task-row { min-height: 64px; gap: 9px; }
-  .task-content { gap: 8px; }
-  .task-index { display: none; }
-  .task-title { font-size: 13px; }
-  .people-checks { gap: 4px; }
-  .person-mark { width: 28px; height: 28px; }
-  .app-footer { flex-direction: column; }
-  .landing-card { min-height: 620px; border-radius: 26px; padding: 25px; }
-  .landing-copy { padding: 80px 0 30px; }
-  .landing-copy h1 { font-size: 54px; }
-  .landing-subtitle { font-size: 15px; }
-  .setup-shell { padding: 15px; }
-  .setup-card { padding: 24px 20px; border-radius: 23px; }
-  .setup-heading h1 { font-size: 33px; }
-  .tracker-grid { gap: 2px; }
-  .tracker-cell { border-radius: 2px; }
-  .tracker-legend { margin-left: 48px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
-    transition-duration: .01ms !important;
+  .celestial-moon-wrap {
+    width: 58px;
+    height: 58px;
+    top: 30px;
+    right: 15px;
+  }
+  .celestial-moon {
+    width: 46px;
+    height: 46px;
   }
 }
+
