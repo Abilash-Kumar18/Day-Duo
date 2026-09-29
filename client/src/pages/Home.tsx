@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Clipboard, Copy, Link2, LogOut, Plus, RefreshCw, Sparkles, Trash2, Users, X } from "lucide-react";
 import { CustomCalendar } from "@/components/CustomCalendar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 const toDayKey = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -81,6 +82,9 @@ function AuthLanding() {
 
   return (
     <main className="landing-shell">
+      <div className="absolute top-6 right-6 z-20">
+        <ThemeToggle className="soft" />
+      </div>
       <div className="landing-card">
         <div className="flex items-center gap-3"><AppMark /><span className="brand-word">DuoDay</span></div>
         <div className="landing-copy">
@@ -105,11 +109,11 @@ function AuthLanding() {
                 {login.isPending ? <RefreshCw className="spin" size={17} /> : <>Sign in to start <ArrowRight size={17} /></>}
               </Button>
             </div>
-            <div className="flex items-center gap-2 text-xs text-[#829087]">
+            <div className="flex items-center gap-2 text-xs demo-login-hints">
               <span>Quick demo login:</span>
               <button
                 type="button"
-                className="underline hover:text-[#45634e] cursor-pointer font-medium"
+                className="underline hover:opacity-80 cursor-pointer font-medium"
                 onClick={() => handleSignIn("Alex")}
                 disabled={login.isPending}
               >
@@ -118,7 +122,7 @@ function AuthLanding() {
               <span>·</span>
               <button
                 type="button"
-                className="underline hover:text-[#45634e] cursor-pointer font-medium"
+                className="underline hover:opacity-80 cursor-pointer font-medium"
                 onClick={() => handleSignIn("Jordan")}
                 disabled={login.isPending}
               >
@@ -141,13 +145,20 @@ function DuoSetup({ onReady }: { onReady: () => void }) {
   const create = trpc.duo.create.useMutation({ onSuccess: () => { toast.success("Your duo is ready"); onReady(); }, onError: (error) => toast.error(error.message) });
   const join = trpc.duo.join.useMutation({ onSuccess: () => { toast.success("You joined the duo"); onReady(); }, onError: (error) => toast.error(error.message) });
   const submit = () => mode === "create" ? create.mutate({ nickname: nickname || undefined }) : join.mutate({ inviteCode: code, nickname: nickname || undefined });
-  return <main className="setup-shell"><div className="setup-card">
-    <div className="setup-heading"><AppMark /><p className="eyebrow">Welcome to DuoDay</p><h1>Who are you doing today with?</h1><p>Start a shared space, then send the code to one person. You’ll both see the same list.</p></div>
-    <div className="segmented"><button className={mode === "create" ? "active" : ""} onClick={() => setMode("create")}>Create a duo</button><button className={mode === "join" ? "active" : ""} onClick={() => setMode("join")}>Join with a code</button></div>
-    {mode === "join" && <label className="field-label">Invite code<Input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="e.g. 7JQK2M8A" maxLength={12} className="setup-input code-input" /></label>}
-    <label className="field-label">Your name in this duo<Input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="e.g. Alex" className="setup-input" /></label>
-    <Button className="primary-button w-full mt-3" disabled={(mode === "join" && code.length < 4) || create.isPending || join.isPending} onClick={submit}>{mode === "create" ? "Create shared space" : "Join shared space"}<ArrowRight size={17} /></Button>
-  </div></main>;
+  return (
+    <main className="setup-shell">
+      <div className="absolute top-6 right-6 z-20">
+        <ThemeToggle className="soft" />
+      </div>
+      <div className="setup-card">
+        <div className="setup-heading"><AppMark /><p className="eyebrow">Welcome to DuoDay</p><h1>Who are you doing today with?</h1><p>Start a shared space, then send the code to one person. You’ll both see the same list.</p></div>
+        <div className="segmented"><button className={mode === "create" ? "active" : ""} onClick={() => setMode("create")}>Create a duo</button><button className={mode === "join" ? "active" : ""} onClick={() => setMode("join")}>Join with a code</button></div>
+        {mode === "join" && <label className="field-label">Invite code<Input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="e.g. 7JQK2M8A" maxLength={12} className="setup-input code-input" /></label>}
+        <label className="field-label">Your name in this duo<Input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="e.g. Alex" className="setup-input" /></label>
+        <Button className="primary-button w-full mt-3" disabled={(mode === "join" && code.length < 4) || create.isPending || join.isPending} onClick={submit}>{mode === "create" ? "Create shared space" : "Join shared space"}<ArrowRight size={17} /></Button>
+      </div>
+    </main>
+  );
 }
 
 function Consistency({ members, completions, dayKey }: { members: Array<{ id: number; name: string | null; nickname: string | null }>; completions: Array<{ taskId: number; userId: number; dayKey: string; isDone: number }>; dayKey: string }) {
@@ -280,6 +291,7 @@ export default function Home() {
       <div className="brand-lockup"><AppMark /><span className="brand-word">DuoDay</span></div>
       <div className="topbar-right">
         <div className="online-dot"><span></span> synced</div>
+        <ThemeToggle />
         <button className="icon-button" onClick={() => logout()} title="Sign out"><LogOut size={17} /></button>
       </div>
     </header>
