@@ -973,19 +973,20 @@ html.dark .field-label { color: #9bb0a2; }
   100% { transform: translate(-25px, 35px) scale(0.9); }
 }
 
-/* Photorealistic Glowing Full Moon matching reference image */
+/* Photorealistic Glowing Full Moon (seamless screen blend with no lines or borders) */
 .photorealistic-moon-wrap {
   position: absolute;
-  top: 75px;
-  right: max(7%, calc((100vw - 1160px) / 2));
-  width: 135px;
-  height: 135px;
+  top: 30px;
+  right: max(4%, calc((100vw - 1220px) / 2));
+  width: 120px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
   animation: celestialMoonOrbit 22s ease-in-out infinite alternate;
   transform-origin: center center;
   z-index: 1;
+  pointer-events: none;
 }
 
 @keyframes celestialMoonOrbit {
@@ -993,32 +994,26 @@ html.dark .field-label { color: #9bb0a2; }
     transform: translateY(0px) translateX(0px) rotate(0deg);
   }
   35% {
-    transform: translateY(-14px) translateX(-10px) rotate(-2deg);
+    transform: translateY(-12px) translateX(-8px) rotate(-1.5deg);
   }
   70% {
-    transform: translateY(8px) translateX(-18px) rotate(1.5deg);
+    transform: translateY(6px) translateX(-14px) rotate(1.2deg);
   }
   100% {
-    transform: translateY(-8px) translateX(-6px) rotate(3deg);
+    transform: translateY(-6px) translateX(-4px) rotate(2deg);
   }
 }
 
 .photorealistic-moon {
   position: relative;
-  width: 108px;
-  height: 108px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
-  overflow: hidden;
-  box-shadow:
-    0 0 35px rgba(255, 255, 255, 0.95),
-    0 0 75px rgba(224, 238, 255, 0.7),
-    0 0 130px rgba(186, 215, 255, 0.4),
-    0 0 190px rgba(147, 197, 253, 0.22);
-  z-index: 2;
-  background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 60px rgba(200, 230, 255, 0.6));
 }
 
 .moon-texture-image {
@@ -1026,49 +1021,12 @@ html.dark .field-label { color: #9bb0a2; }
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  filter: contrast(1.12) brightness(1.15);
+  filter: contrast(1.15) brightness(1.18);
   display: block;
   user-select: none;
   pointer-events: none;
-}
-
-.moon-luminous-overlay {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle at 45% 45%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 55%, rgba(240, 245, 255, 0.4) 100%);
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.8), inset 0 0 30px rgba(200, 225, 255, 0.4);
-  pointer-events: none;
-}
-
-/* Photorealistic Ethereal Lunar Halo Aura */
-.moon-photoreal-halo {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-}
-.halo-1 {
-  width: 155px;
-  height: 155px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, rgba(220, 235, 255, 0.15) 50%, transparent 75%);
-  animation: auraPulse1 6s ease-in-out infinite alternate;
-  filter: blur(8px);
-}
-.halo-2 {
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(200, 225, 255, 0.2) 0%, rgba(180, 210, 255, 0.08) 55%, transparent 75%);
-  animation: auraPulse2 8s ease-in-out infinite alternate;
-  filter: blur(14px);
-}
-
-@keyframes auraPulse1 {
-  0% { transform: scale(0.96); opacity: 0.65; }
-  100% { transform: scale(1.08); opacity: 1; }
-}
-@keyframes auraPulse2 {
-  0% { transform: scale(0.94); opacity: 0.4; }
-  100% { transform: scale(1.1); opacity: 0.85; }
+  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.8) 72%, rgba(0, 0, 0, 0) 98%);
+  -webkit-mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.8) 72%, rgba(0, 0, 0, 0) 98%);
 }
 
 /* ----------------------------------------------------

@@ -50,19 +50,15 @@ export function NightSkyBackground() {
       <div className="space-nebula space-nebula-2" />
       <div className="space-nebula space-nebula-3" />
 
-      {/* Photorealistic Glowing Full Moon matching reference image */}
-      <div className="celestial-moon-wrap photorealistic-moon-wrap">
+      {/* Seamless Photorealistic Full Moon (no hard lines or dark outer border) */}
+      <div className="photorealistic-moon-wrap">
         <div className="photorealistic-moon">
           <img
             src="/assets/realistic_full_moon.jpg"
             alt="Glowing Full Moon"
             className="moon-texture-image"
           />
-          <div className="moon-luminous-overlay" />
         </div>
-        {/* Soft Ethereal Lunar Halo Aura */}
-        <div className="moon-photoreal-halo halo-1" />
-        <div className="moon-photoreal-halo halo-2" />
       </div>
 
       {/* Twinkling Stars & Diamond Glitter */}
