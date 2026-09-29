@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import { NightSkyBackground } from "./components/NightSkyBackground";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -28,9 +29,10 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider
         defaultTheme="light"
-        // switchable
+        switchable={true}
       >
         <TooltipProvider>
+          <NightSkyBackground />
           <Toaster />
           <Router />
         </TooltipProvider>
