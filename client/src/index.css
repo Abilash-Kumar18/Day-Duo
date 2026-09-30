@@ -976,7 +976,7 @@ html.dark .field-label { color: #9bb0a2; }
 /* Photorealistic Glowing Full Moon (seamless screen blend with no lines or borders) */
 .photorealistic-moon-wrap {
   position: absolute;
-  top: 30px;
+  top: 130px;
   right: max(4%, calc((100vw - 1220px) / 2));
   width: 120px;
   height: 120px;
