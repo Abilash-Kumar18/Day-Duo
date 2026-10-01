@@ -91,7 +91,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
   ```bash
   npm run start
   ```
-
 ---
 
 ## 🌐 Deploying to Vercel
