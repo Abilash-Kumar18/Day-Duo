@@ -1,18 +1,13 @@
 # DuoDay 👥
-
 A modern full-stack web application designed for teammates or duos to plan daily routines, build habits, manage shared goals, and stay synchronized every day.
-
 ---
-
 ## 🚀 Features
-
 - **Shared Duo Space**: Create or join a duo with an invite code.
 - **Daily Task & Habit Tracker**: Track shared tasks, daily checklists, and habit streaks.
 - **Interactive UI**: Built with React, TailwindCSS, Lucide icons, Framer Motion, and Radix UI components.
 - **tRPC API & Express Backend**: End-to-end type safety between frontend client and backend server.
 - **Database Ready**: Schema managed using Drizzle ORM (MySQL / PlanetScale / Neon / Supabase).
 - **Vercel Deploy Ready**: Optimized for serverless API deployment on Vercel with static frontend caching.
-
 ---
 
 ## 📁 Project Structure
