@@ -50,11 +50,11 @@ export function NightSkyBackground() {
       <div className="space-nebula space-nebula-2" />
       <div className="space-nebula space-nebula-3" />
 
-      {/* Seamless Photorealistic Full Moon (no hard lines or dark outer border) */}
+      {/* Exact Moon (clean screen blend without any border line) */}
       <div className="photorealistic-moon-wrap">
         <div className="photorealistic-moon">
           <img
-            src="/assets/realistic_full_moon.jpg"
+            src="/assets/moon.png"
             alt="Glowing Full Moon"
             className="moon-texture-image"
           />
