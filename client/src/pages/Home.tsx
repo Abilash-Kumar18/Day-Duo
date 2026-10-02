@@ -133,7 +133,6 @@ function AuthLanding() {
         </div>
         <div className="landing-note"><Sparkles size={16} /> Your progress is private to your duo.</div>
       </div>
-      <div className="landing-orbit orbit-one"></div><div className="landing-orbit orbit-two"></div>
     </main>
   );
 }
