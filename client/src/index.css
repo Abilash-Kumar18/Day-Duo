@@ -973,13 +973,13 @@ html.dark .field-label { color: #9bb0a2; }
   100% { transform: translate(-25px, 35px) scale(0.9); }
 }
 
-/* Photorealistic Glowing Full Moon (seamless screen blend with no lines or borders) */
+/* Exact Photorealistic Moon (seamless blend without any border line) */
 .photorealistic-moon-wrap {
   position: absolute;
   top: 96px;
   right: max(4%, calc((100vw - 1220px) / 2));
-  width: 120px;
-  height: 120px;
+  width: 125px;
+  height: 125px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1009,45 +1009,29 @@ html.dark .field-label { color: #9bb0a2; }
 
 .photorealistic-moon {
   position: relative;
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  mix-blend-mode: screen;
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
-}
-
-/* Soft celestial ambient halo without hard contour lines or borders */
-.photorealistic-moon::before {
-  content: "";
-  position: absolute;
-  inset: -25px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 245, 220, 0.28) 0%, rgba(200, 230, 255, 0.12) 45%, rgba(180, 220, 255, 0) 72%);
-  filter: blur(20px);
-  z-index: -1;
-  pointer-events: none;
-  border: none !important;
+  background: transparent !important;
 }
 
 .moon-texture-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  filter: contrast(1.15) brightness(1.18);
+  object-fit: contain;
   display: block;
   user-select: none;
   pointer-events: none;
+  mix-blend-mode: screen;
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
-  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0.85) 65%, rgba(0, 0, 0, 0.2) 85%, rgba(0, 0, 0, 0) 100%);
-  -webkit-mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0.85) 65%, rgba(0, 0, 0, 0.2) 85%, rgba(0, 0, 0, 0) 100%);
+  filter: contrast(1.08) brightness(1.05);
 }
 
 /* ----------------------------------------------------
