@@ -15,6 +15,11 @@
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+html, body {
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+}
+
 html.dark {
   color: #dbe5df;
   background: #0c110e;
@@ -36,6 +41,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(222, 116, 96
   position: relative;
   z-index: 1;
   background: transparent !important;
+  padding-top: 76px;
   transition: background 0.3s ease;
 }
 
@@ -48,9 +54,12 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(222, 116, 96
   padding: 0 max(24px, calc((100vw - 1160px) / 2));
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(20px);
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 10;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 100;
   transition: all 0.25s ease;
 }
 
@@ -1259,6 +1268,7 @@ html.dark .field-label { color: #9bb0a2; }
 }
 
 @media (max-width: 600px) {
+  .app-shell { padding-top: 64px; }
   .topbar { height: 64px; padding: 0 17px; }
   .online-dot { display: none; }
   .dashboard { padding: 34px 15px 24px; }
