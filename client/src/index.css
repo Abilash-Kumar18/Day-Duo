@@ -22,7 +22,7 @@ html.dark {
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; background: inherit; color: inherit; transition: background-color 0.25s ease, color 0.25s ease; }
+body { margin: 0; min-width: 320px; background: transparent; color: inherit; transition: background-color 0.25s ease, color 0.25s ease; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 button:active { transform: scale(.97); }
@@ -35,23 +35,19 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(222, 116, 96
   min-height: 100vh;
   position: relative;
   z-index: 1;
-  background: radial-gradient(circle at 88% 7%, rgba(236, 178, 117, .12), transparent 24rem), #f5f6f0;
-  transition: background 0.3s ease;
-}
-
-html.dark .app-shell {
   background: transparent !important;
+  transition: background 0.3s ease;
 }
 
 .topbar {
   height: 76px;
-  border-bottom: 1px solid #e1e5dc;
+  border-bottom: 1px solid rgba(225, 229, 220, 0.75);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 max(24px, calc((100vw - 1160px) / 2));
-  background: rgba(250, 251, 247, .82);
-  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -210,9 +206,10 @@ html.dark .invite-pill:hover {
 
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.48fr) minmax(310px, .82fr); gap: 20px; align-items: start; }
 .card-surface {
-  background: rgba(255, 255, 252, .82);
-  border: 1px solid #e2e6dd;
-  box-shadow: 0 12px 35px rgba(49, 68, 53, .055);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 40px rgba(35, 60, 45, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
   transition: all 0.25s ease;
 }
 html.dark .card-surface {
@@ -789,7 +786,7 @@ html.dark .loading-screen { color: #8fa093; background: #0c110e; }
   display: grid;
   place-items: center;
   padding: 24px;
-  background: radial-gradient(circle at 15% 18%, rgba(240, 190, 118, .18), transparent 21rem), #f5f6f0;
+  background: transparent !important;
   transition: background 0.3s ease;
 }
 
@@ -800,10 +797,11 @@ html.dark .landing-shell, html.dark .setup-shell {
 .landing-card {
   width: min(100%, 660px);
   min-height: 580px;
-  border: 1px solid #e1e6dc;
-  background: rgba(255,255,251,.75);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(28px);
   border-radius: 34px;
-  box-shadow: 0 28px 80px rgba(70, 83, 66, .1);
+  box-shadow: 0 28px 80px rgba(45, 65, 50, .12), 0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 34px 40px;
   display: flex;
   flex-direction: column;
@@ -840,10 +838,11 @@ html.dark .orbit-two { border-color: rgba(235, 188, 112, 0.18); }
 
 .setup-card {
   width: min(100%, 500px);
-  border: 1px solid #e1e6dc;
-  background: rgba(255,255,251,.86);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(28px);
   border-radius: 28px;
-  box-shadow: 0 24px 70px rgba(70, 83, 66, .1);
+  box-shadow: 0 24px 70px rgba(45, 65, 50, .14), 0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 34px;
   position: relative;
   z-index: 1;
@@ -901,6 +900,58 @@ html.dark .segmented button.active {
 .field-label input { margin-top: 7px; }
 .code-input { letter-spacing: .2em; font-weight: 700; }
 html.dark .field-label { color: #9bb0a2; }
+
+/* ----------------------------------------------------
+   DAY SKY & SUNNY SCENIC BACKGROUND (LIGHT THEME)
+---------------------------------------------------- */
+.day-sky-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  animation: daySkyFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes daySkyFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.day-scenic-image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/day_background.jpg');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+  opacity: 0.96;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.day-sun-glow {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 250, 220, 0.35) 0%, rgba(255, 235, 170, 0.12) 40%, transparent 70%);
+  filter: blur(35px);
+  pointer-events: none;
+}
+
+.day-sky-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 45%, rgba(240, 248, 240, 0.2) 100%);
+  pointer-events: none;
+}
 
 /* ----------------------------------------------------
    NIGHT SKY DYNAMIC BACKGROUND (DARK THEME)
@@ -978,8 +1029,8 @@ html.dark .field-label { color: #9bb0a2; }
   position: absolute;
   top: 96px;
   right: max(4%, calc((100vw - 1220px) / 2));
-  width: 125px;
-  height: 125px;
+  width: 150px;
+  height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1204,15 +1255,15 @@ html.dark .field-label { color: #9bb0a2; }
 
   .celestial-moon-wrap,
   .photorealistic-moon-wrap {
-    width: 85px;
-    height: 85px;
+    width: 110px;
+    height: 110px;
     top: 86px;
     right: 25px;
   }
   .celestial-moon,
   .photorealistic-moon {
-    width: 66px;
-    height: 66px;
+    width: 100%;
+    height: 100%;
   }
   .ring-1 { width: 100px; height: 100px; }
   .ring-2 { width: 135px; height: 135px; }
@@ -1244,15 +1295,15 @@ html.dark .field-label { color: #9bb0a2; }
 
   .celestial-moon-wrap,
   .photorealistic-moon-wrap {
-    width: 68px;
-    height: 68px;
+    width: 80px;
+    height: 80px;
     top: 76px;
     right: 15px;
   }
   .celestial-moon,
   .photorealistic-moon {
-    width: 52px;
-    height: 52px;
+    width: 100%;
+    height: 100%;
   }
 }
 
