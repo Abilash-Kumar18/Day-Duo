@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import { NightSkyBackground } from "./components/NightSkyBackground";
+import { DaySkyBackground } from "./components/DaySkyBackground";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -32,6 +33,7 @@ function App() {
         switchable={true}
       >
         <TooltipProvider>
+          <DaySkyBackground />
           <NightSkyBackground />
           <Toaster />
           <Router />
