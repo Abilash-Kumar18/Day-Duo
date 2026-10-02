@@ -1027,11 +1027,9 @@ html.dark .field-label { color: #9bb0a2; }
   display: block;
   user-select: none;
   pointer-events: none;
-  mix-blend-mode: screen;
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
-  filter: contrast(1.08) brightness(1.05);
 }
 
 /* ----------------------------------------------------
