@@ -299,6 +299,24 @@ export async function addTask(duoId: number, userId: number, title: string) {
   return id;
 }
 
+export async function updateTask(duoId: number, taskId: number, title: string) {
+  const db = await getDb();
+  if (db) {
+    try {
+      await db.update(tasks).set({ title }).where(and(eq(tasks.id, taskId), eq(tasks.duoId, duoId)));
+      return;
+    } catch (error) {
+      console.warn("[Database] Error in updateTask MySQL, using memory fallback:", error);
+    }
+  }
+
+  // Memory fallback
+  const task = memTasks.find(t => t.id === taskId && t.duoId === duoId);
+  if (task) {
+    task.title = title;
+  }
+}
+
 export async function removeTask(duoId: number, taskId: number) {
   const db = await getDb();
   if (db) {

@@ -515,8 +515,42 @@ html.dark .task-index { color: #5b6e61; }
 .task-title { color: #46564b; font-size: 14px; font-weight: 600; transition: .18s ease; }
 html.dark .task-title { color: #e2ece5; }
 
+.task-row.is-editing {
+  background: rgba(16, 185, 129, 0.04);
+}
+html.dark .task-row.is-editing {
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.task-edit-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-edit-input {
+  height: 34px;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #10b981;
+  background: #ffffff;
+  color: #2e3d32;
+  width: 100%;
+}
+.task-edit-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+html.dark .task-edit-input {
+  background: #17231c;
+  border-color: #059669;
+  color: #e2ece5;
+}
+
 .people-checks { display: flex; gap: 6px; }
 .task-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.task-action-btn,
 .task-remove-btn {
   width: 30px;
   height: 30px;
@@ -531,10 +565,70 @@ html.dark .task-title { color: #e2ece5; }
   transition: all .18s ease;
   padding: 0;
 }
+.task-action-btn:hover {
+  transform: scale(1.05);
+}
+.task-action-btn:active {
+  transform: scale(0.95);
+}
+
+.task-edit-btn:hover {
+  background: #f0fdf4;
+  color: #16a34a;
+  border-color: #dcfce7;
+}
+
+.task-save-btn {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+}
+.task-save-btn:hover {
+  background: #15803d;
+  color: #ffffff;
+}
+.task-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.task-cancel-btn {
+  color: #8b978c;
+}
+.task-cancel-btn:hover {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
 .task-remove-btn:hover { background: #fef2f2; color: #ef4444; border-color: #fee2e2; transform: scale(1.05); }
 .task-remove-btn:active { transform: scale(0.95); }
 
+html.dark .task-action-btn,
 html.dark .task-remove-btn { color: #627468; }
+
+html.dark .task-edit-btn:hover {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+html.dark .task-save-btn {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+}
+html.dark .task-save-btn:hover {
+  background: #16a34a;
+}
+
+html.dark .task-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #d1d5db;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
 html.dark .task-remove-btn:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
 
 /* Person Mark Badges */
