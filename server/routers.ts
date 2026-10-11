@@ -2,7 +2,7 @@
 import { z } from "zod";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
-import { createDuo, addTask, removeTask, getCompletions, getDayKeys, getDuoForUser, getDuoMembers, getTasks, isDuoMember, joinDuo, setCompletion, upsertUser, getUserByOpenId } from "./db.js";
+import { createDuo, addTask, updateTask, removeTask, getCompletions, getDayKeys, getDuoForUser, getDuoMembers, getTasks, isDuoMember, joinDuo, setCompletion, upsertUser, getUserByOpenId } from "./db.js";
 import { systemRouter } from "./_core/systemRouter.js";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 import { sdk } from "./_core/sdk.js";
@@ -81,6 +81,13 @@ export const appRouter = router({
       const task = (await getTasks(record.duo.id)).find(item => item.id === input.taskId);
       if (!task || !(await isDuoMember(ctx.user.id, record.duo.id))) throw new Error("Task not found in your duo");
       await setCompletion(input.taskId, ctx.user.id, input.dayKey, input.isDone);
+      return { success: true } as const;
+    }),
+    update: protectedProcedure.input(z.object({ taskId: z.number().int().positive(), title: z.string().trim().min(1).max(240) })).mutation(async ({ ctx, input }) => {
+      const record = await getDuoForUser(ctx.user.id);
+      if (!record) throw new Error("Join a duo before managing tasks");
+      if (!(await isDuoMember(ctx.user.id, record.duo.id))) throw new Error("Not authorized");
+      await updateTask(record.duo.id, input.taskId, input.title);
       return { success: true } as const;
     }),
     remove: protectedProcedure.input(z.object({ taskId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {

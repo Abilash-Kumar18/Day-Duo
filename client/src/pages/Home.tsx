@@ -5,7 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Clipboard, Copy, Link2, LogOut, Plus, RefreshCw, Sparkles, Trash2, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Clipboard, Copy, Link2, LogOut, Pencil, Plus, RefreshCw, Sparkles, Trash2, Users, X } from "lucide-react";
 import { CustomCalendar } from "@/components/CustomCalendar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -238,7 +238,51 @@ export default function Home() {
     },
   });
 
+  const updateTask = trpc.todo.update.useMutation({
+    onMutate: async ({ taskId, title }) => {
+      await utils.todo.dashboard.cancel({ dayKey });
+      const previous = utils.todo.dashboard.getData({ dayKey });
+      utils.todo.dashboard.setData({ dayKey }, old => old ? ({
+        ...old,
+        tasks: old.tasks.map(t => t.id === taskId ? { ...t, title } : t),
+      }) : old);
+      return { previous };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previous) utils.todo.dashboard.setData({ dayKey }, context.previous);
+      toast.error("Could not update task");
+    },
+    onSuccess: () => {
+      toast.success("Task updated");
+    },
+    onSettled: () => {
+      utils.todo.dashboard.invalidate({ dayKey });
+    },
+  });
+
   const [newTask, setNewTask] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
+  const startEditing = (task: { id: number; title: string }) => {
+    setEditingTaskId(task.id);
+    setEditingTitle(task.title);
+  };
+
+  const cancelEditing = () => {
+    setEditingTaskId(null);
+    setEditingTitle("");
+  };
+
+  const handleSaveEdit = (taskId: number) => {
+    const trimmed = editingTitle.trim();
+    if (!trimmed) {
+      toast.error("Task title cannot be empty");
+      return;
+    }
+    updateTask.mutate({ taskId, title: trimmed });
+    setEditingTaskId(null);
+  };
 
   if (loading) return <div className="loading-screen"><RefreshCw className="spin" size={22} /> Loading your space…</div>;
   if (!isAuthenticated || !user) return <AuthLanding />;
@@ -388,24 +432,48 @@ export default function Home() {
                 const partnerCheck = partner ? isDone(task.id, partner.id) : false;
                 const fullyDone = isBothDone(task.id);
                 const partiallyDone = (myCheck || partnerCheck) && !fullyDone;
+                const isEditing = editingTaskId === task.id;
 
                 return (
                   <div
-                    className={`task-row ${fullyDone ? "completed" : ""} ${partiallyDone ? "partially-completed" : ""}`}
+                    className={`task-row ${fullyDone ? "completed" : ""} ${partiallyDone ? "partially-completed" : ""} ${isEditing ? "is-editing" : ""}`}
                     key={task.id}
                   >
                     <div className="task-content">
-                      <span className="task-index">0{index + 1}</span>
-                      <div className="task-title-group">
-                        <span className="task-title">{task.title}</span>
-                        {fullyDone ? (
-                          <span className="status-badge status-both"><Check size={11} /> Both completed</span>
-                        ) : myCheck && partner ? (
-                          <span className="status-badge status-waiting">Waiting for {labelFor(partner)}</span>
-                        ) : partnerCheck ? (
-                          <span className="status-badge status-needs-you">{labelFor(partner)} completed · Needs you</span>
-                        ) : null}
-                      </div>
+                      <span className="task-index">{pad(index + 1)}</span>
+                      {isEditing ? (
+                        <div className="task-edit-wrapper">
+                          <Input
+                            value={editingTitle}
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onFocus={(e) => e.currentTarget.select()}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleSaveEdit(task.id);
+                              } else if (e.key === "Escape") {
+                                e.preventDefault();
+                                cancelEditing();
+                              }
+                            }}
+                            autoFocus
+                            className="task-edit-input"
+                            placeholder="Edit task title..."
+                            maxLength={240}
+                          />
+                        </div>
+                      ) : (
+                        <div className="task-title-group">
+                          <span className="task-title">{task.title}</span>
+                          {fullyDone ? (
+                            <span className="status-badge status-both"><Check size={11} /> Both completed</span>
+                          ) : myCheck && partner ? (
+                            <span className="status-badge status-waiting">Waiting for {labelFor(partner)}</span>
+                          ) : partnerCheck ? (
+                            <span className="status-badge status-needs-you">{labelFor(partner)} completed · Needs you</span>
+                          ) : null}
+                        </div>
+                      )}
                     </div>
 
                     <div className="task-actions">
@@ -429,15 +497,51 @@ export default function Home() {
                         )}
                       </div>
 
-                      <button
-                        className="task-remove-btn"
-                        onClick={() => removeTask.mutate({ taskId: task.id })}
-                        disabled={removeTask.isPending}
-                        title="Delete task"
-                        aria-label={`Delete task ${task.title}`}
-                      >
-                        <Trash2 size={15} />
-                      </button>
+                      {isEditing ? (
+                        <>
+                          <button
+                            type="button"
+                            className="task-action-btn task-save-btn"
+                            onClick={() => handleSaveEdit(task.id)}
+                            disabled={!editingTitle.trim() || updateTask.isPending}
+                            title="Save task (Enter)"
+                            aria-label={`Save task ${task.title}`}
+                          >
+                            <Check size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            className="task-action-btn task-cancel-btn"
+                            onClick={cancelEditing}
+                            title="Cancel editing (Esc)"
+                            aria-label="Cancel editing"
+                          >
+                            <X size={15} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className="task-action-btn task-edit-btn"
+                            onClick={() => startEditing(task)}
+                            title="Edit task"
+                            aria-label={`Edit task ${task.title}`}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="task-remove-btn"
+                            onClick={() => removeTask.mutate({ taskId: task.id })}
+                            disabled={removeTask.isPending}
+                            title="Delete task"
+                            aria-label={`Delete task ${task.title}`}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
