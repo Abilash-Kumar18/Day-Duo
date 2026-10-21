@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Clipboard, Copy, Link2, LogOut, Pencil, Plus, RefreshCw, Sparkles, Trash2, Users, X } from "lucide-react";
 import { CustomCalendar } from "@/components/CustomCalendar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { InstallAppButton } from "@/components/InstallAppButton";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 const toDayKey = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -82,7 +83,8 @@ function AuthLanding() {
 
   return (
     <main className="landing-shell">
-      <div className="absolute top-6 right-6 z-20">
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
+        <InstallAppButton />
         <ThemeToggle className="soft" />
       </div>
       <div className="landing-card">
@@ -146,7 +148,8 @@ function DuoSetup({ onReady }: { onReady: () => void }) {
   const submit = () => mode === "create" ? create.mutate({ nickname: nickname || undefined }) : join.mutate({ inviteCode: code, nickname: nickname || undefined });
   return (
     <main className="setup-shell">
-      <div className="absolute top-6 right-6 z-20">
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
+        <InstallAppButton />
         <ThemeToggle className="soft" />
       </div>
       <div className="setup-card">
@@ -334,6 +337,7 @@ export default function Home() {
       <div className="brand-lockup"><AppMark /><span className="brand-word">DuoDay</span></div>
       <div className="topbar-right">
         <div className="online-dot"><span></span> synced</div>
+        <InstallAppButton />
         <ThemeToggle />
         <button className="icon-button" onClick={() => logout()} title="Sign out"><LogOut size={17} /></button>
       </div>

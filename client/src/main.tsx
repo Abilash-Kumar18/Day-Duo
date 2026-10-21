@@ -6,7 +6,11 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { startLogin } from "./const";
+import { registerServiceWorker } from "./lib/pwa";
 import "./index.css";
+
+// Makes DuoDay installable as a web app and keeps it usable offline.
+registerServiceWorker();
 
 const queryClient = new QueryClient();
 
