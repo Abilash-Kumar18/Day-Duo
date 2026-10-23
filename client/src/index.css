@@ -990,8 +990,23 @@ html.dark .app-footer { color: #6c7e73; }
 html.dark .app-footer button { color: #8ea195; }
 html.dark .app-footer button:hover { color: #b4c7bb; }
 
-.loading-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; gap: 10px; color: #6d7b6e; font-size: 14px; }
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+  color: #6d7b6e;
+  font-size: 14px;
+  text-align: center;
+}
 html.dark .loading-screen { color: #8fa093; background: #0c110e; }
+html.dark .loading-screen svg { color: #f08974; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
