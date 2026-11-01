@@ -10,7 +10,6 @@ A modern full-stack web application designed for teammates or duos to plan daily
 - **Vercel Deploy Ready**: Optimized for serverless API deployment on Vercel with static frontend caching.
 - **Installable Web App (PWA)**: Manifest, service worker, and offline shell — DuoDay can be installed as a native-style app on Chrome, Edge, Android, and iOS.
 ---
-
 ## 📁 Project Structure
 
 ```text
