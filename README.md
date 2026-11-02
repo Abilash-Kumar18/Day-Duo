@@ -122,7 +122,6 @@ Notes:
   ```bash
   npm run icons
   ```
-
 ---
 
 ## 🌐 Deploying to Vercel
