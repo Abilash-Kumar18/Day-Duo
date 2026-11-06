@@ -7,7 +7,6 @@ A modern full-stack web application designed for teammates or duos to plan daily
 - **Interactive UI**: Built with React, TailwindCSS, Framer Motion, and Radix UI components.
 - **tRPC API & Express Backend**: End-to-end type safety between frontend client and backend server.
 - **Database Ready**: Schema managed using Drizzle ORM (MySQL / PlanetScale / Neon / Supabase).
-- **Vercel Deploy Ready**: Optimized for serverless API deployment on Vercel with static frontend caching.
 - **Installable Web App (PWA)**: Manifest, service worker, and offline shell — DuoDay can be installed as a native-style app on Chrome, Edge, Android, and iOS.
 ---
 ## 📁 Project Structure
